@@ -1,5 +1,6 @@
 import './App.css';
-import ParentComponent from './components/useCallbackComponents/ParentComponent';
+import Counter from './components/useMemoComponents/Counter';
+
 
 function App() {
   return (
@@ -14,7 +15,8 @@ function App() {
       {/* <HookMouse /> */}
       {/* <MouseContainer /> */}
       {/* <DataFetching /> */}
-      <ParentComponent />
+      {/* <ParentComponent /> */}
+      <Counter />
     </div>
   );
 }

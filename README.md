@@ -608,3 +608,106 @@ const Title = () => {
 export default React.memo(Title);
 ```
 In questo modo quando clicco su uno dei due bottoni non verranno ri-renderizzati tutti i componenti, ma solo quelli che hanno subito un cambiamento di stato. Questo perchè a useCallback ho passato il parametro che potrebbe cambiare come dipendenza e quindi se il parametro passato non cambia il componente non verrà ri-renderizzato.
+
+---
+
+# useMemo
+
+usMemo is hook that will only recompute the cached value when one of the dependencies has changed
+
+Nel file [Counter.js](./src/components/useMemoComponents/Counter.js)
+```js
+import React, { useState } from 'react';
+
+const Counter = () => {
+
+    const [counterOne, setCounterOne] = useState(0)
+    const [counterTwo, setCounterTwo] = useState(0)
+
+    const incrementOne = () => {
+        setCounterOne(counterOne + 1)
+    }
+
+    const incrementTwo = () => {
+        setCounterTwo(counterTwo + 1)
+    }
+
+    const isEven = () => {
+        let i = 0
+        while (i < 200000000) i++ // con il solo scopo di rallentare l'esecuzione
+        return counterOne % 2 === 0
+    }
+
+    return (
+        <>
+            <div>
+                <button onClick={incrementOne}>Count One : {counterOne}</button>
+                <span>{isEven() ? ' Even ' : ' Odd '}</span>
+            </div>
+            <div>
+                <button onClick={incrementTwo}>Count Two : {counterTwo}</button>
+            </div>
+        </>
+    );
+};
+
+export default Counter;
+```
+Dentro la funzione isEven() è stato aggiunto un ciclo while che rallenta l'esecuzione del codice perchè è un'operazione abbastanza dispendiosa. Infatti se ora clicco sul primo bottone ci metterà un pò di tempo a verificare se il numero del counterOne è pari o dispari. Ma se clicco sul bottone 2 avviene la stessa cosa nonostante al bottone 2 non stia passando nessuna funzione che controlli se è pari o dispari. Questo comunque avviene perchè al cambiamento dello stato di uno dei due bottoni avviene una ri-renderizzazione che ricostruisce ed esegue la funzione isEven() rallentandone quindi il processo.
+
+Per risolvere questo probleme posso utilizzare useMemo nel seguente modo:
+```js
+import React, { useState, useMemo } from 'react';
+
+const Counter = () => {
+
+    const [counterOne, setCounterOne] = useState(0)
+    const [counterTwo, setCounterTwo] = useState(0)
+
+    const incrementOne = () => {
+        setCounterOne(counterOne + 1)
+    }
+
+    const incrementTwo = () => {
+        setCounterTwo(counterTwo + 1)
+    }
+
+    const isEven = useMemo(() => {
+        let i = 0
+        while (i < 2000000000) i++ // con il solo scopo di rallentare l'esecuzione
+        return counterOne % 2 === 0
+    }, [counterOne])
+
+    // const isEven = () => {
+    //     let i = 0
+    //     while (i < 200000000) i++ // con il solo scopo di rallentare l'esecuzione
+    //     return counterOne % 2 === 0
+    // }
+
+    return (
+        <>
+            <div>
+                <button onClick={incrementOne}>Count One : {counterOne}</button>
+                <span>{isEven ? ' Even ' : ' Odd '}</span>
+            </div>
+            <div>
+                <button onClick={incrementTwo}>Count Two : {counterTwo}</button>
+            </div>
+        </>
+    );
+};
+
+export default Counter;
+```
+
+Quando usare useCallback e quando usare useMemo??
+
+"useCallback" memorizza l'istanza della funzione fornita, mentre "useMemo" invoca la funzione fornita e memorizza il suo risultato. Quindi, se hai bisogno di memorizzare una funzione, utilizza "useCallback", mentre se hai bisogno di memorizzare il risultato di una funzione invocata, utilizza "useMemo".
+
+Inoltre: Un'istanza di una funzione si riferisce all'oggetto funzione creato quando viene definita una funzione in JavaScript. Ogni volta che viene creata una funzione, viene creata una nuova istanza di quella funzione che può essere assegnata a una variabile o passata come argomento ad altre funzioni.
+
+In JavaScript, le funzioni sono "first-class citizens", il che significa che sono trattate come oggetti e possono essere passate come argomenti ad altre funzioni, restituite come valori da una funzione e assegnate a variabili.
+
+Quando si utilizza "useCallback" in React, viene memorizzata un'istanza della funzione fornita. Ciò significa che, quando si chiama la funzione memorizzata, viene eseguita l'istanza della funzione originale fornita.
+
+D'altra parte, "useMemo" memorizza il risultato di una funzione invocata anziché memorizzare l'istanza della funzione stessa. Ciò significa che, ogni volta che si chiama la funzione memorizzata con "useMemo", viene restituito il risultato precedentemente memorizzato senza dover invocare nuovamente la funzione originale.
